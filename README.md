@@ -25,7 +25,7 @@
 1. run process.py
 ```
 
-(4) Visualization concepts
+(4) Visualizing concepts
 ```
 1. run vis_retri.py (all the concepts are shown in folder vis_pp)
 ```
