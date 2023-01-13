@@ -3,9 +3,9 @@
 ## Usage
 
 #### Data Set
-1. Prepare the json file through Labeling box
-2. run data/download_imgs.py (download images and corresponding masks)
-3. run data/generate_dataset.py (crop and generate patches for training and evaluation)
+1. Prepare the json file through Labeling box and set it under data/ direction.
+2. run data/download_imgs.py (download images and corresponding masks).
+3. run data/generate_dataset.py (crop and generate patches for training and evaluation).
 
 #### Training and Visualization
 (1) Pre-training the backbones
