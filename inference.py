@@ -83,7 +83,7 @@ def main():
     model.load_state_dict(checkpoint, strict=True)
     model.eval()
 
-    img_dir = "/home/wangbowen/PycharmProjects/concrete/data/concrete_data/2-t-7/row_img.png"
+    img_dir = "/home/s-tsuruta/PycharmProjects/concrete/data/concrete_data/2-t-7/row_img.png"
     image_source = np.array(Image.open(img_dir).convert('RGB'))
     height_orl, width_orl, c = image_source.shape
     image_source = cv2.resize(image_source, (int(width_orl / resize_ratio), int(height_orl / resize_ratio)), interpolation=cv2.INTER_LINEAR)

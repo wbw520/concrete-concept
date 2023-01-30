@@ -113,5 +113,5 @@ def main():
 if __name__ == '__main__':
     args = parser.parse_args()
     args.pre_train = False
-    args.index = 500
+    args.index = 1
     main()

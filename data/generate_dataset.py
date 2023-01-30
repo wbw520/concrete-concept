@@ -51,6 +51,7 @@ def extract_crop(folders):
     os.makedirs(save_folder + 'raw', exist_ok=True)
     cat_list = []
     color_list = []
+    print(len(folders))
     for item in folders:
         print(item)
         os.makedirs(save_folder + "mask/" + item, exist_ok=True)
