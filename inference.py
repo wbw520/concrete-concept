@@ -85,8 +85,8 @@ def main():
 
     img_dir = "/home/s-tsuruta/PycharmProjects/concrete/data/concrete_data/2-t-7/row_img.png"
     image_source = np.array(Image.open(img_dir).convert('RGB'))
-    height_orl, width_orl, c = image_source.shape
-    image_source = cv2.resize(image_source, (int(width_orl / resize_ratio), int(height_orl / resize_ratio)), interpolation=cv2.INTER_LINEAR)
+    # height_orl, width_orl, c = image_source.shape
+    # image_source = cv2.resize(image_source, (int(width_orl / resize_ratio), int(height_orl / resize_ratio)), interpolation=cv2.INTER_LINEAR)
     height, width, c = image_source.shape
     tile_rows = ceil((height - patch_size) / stride) + 1
     tile_cols = ceil((width - patch_size) / stride) + 1
@@ -108,7 +108,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.pre_train = False
     save_folder = "concrete_cropped_center/"
-    resize_ratio = 2
     patch_size = 224
     stride = 50
     num_cpt = args.num_cpt

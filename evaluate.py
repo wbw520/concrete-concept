@@ -43,7 +43,7 @@ def main():
     model.load_state_dict(checkpoint, strict=True)
 
     preds, labels = evaluation(args, model, val_loader, device)
-    matrixs(preds, labels, args.base_model + " Per-class Normalized", ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"])
+    matrixs(preds, labels, args.base_model + " Per-class Normalized", ["0", "1", "2", "3"])
 
 
 if __name__ == '__main__':
