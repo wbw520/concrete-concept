@@ -65,8 +65,23 @@ def patch_calculation(tile_rows, tile_cols, image_source, image_size, model):
     final_score = []
 
     for ii in range(args.num_cpt):
-        final_cpt.append((np.mean(cpt_record[ii]) + np.median(cpt_record[ii])) / 2)
-        final_score.append((np.mean(score_record[ii]) + np.median(score_record[ii])) / 2)
+        temp_cpt = []
+        temp_score = []
+        for jj in range(len(cpt_record[ii])):
+            if cpt_record[ii][jj] > thresh:
+                temp_cpt.append(cpt_record[ii][jj])
+            if score_record[ii][jj] > thresh:
+                temp_score.append(score_record[ii][jj])
+
+        if len(temp_cpt) == 0:
+            final_cpt.append(0)
+        else:
+            final_cpt.append(np.mean(temp_cpt))
+
+        if len(temp_score) == 0:
+            final_score.append(0)
+        else:
+            final_score.append(np.mean(temp_score))
 
     full_probs_pred /= count_predictions_pred
     _, preds = torch.max(full_probs_pred, 0)
@@ -135,5 +150,6 @@ if __name__ == '__main__':
     save_folder = "concrete_cropped_center/"
     patch_size = 224
     stride = 50
+    thresh = 0.05
     transform = get_val_transformations()
     main()
