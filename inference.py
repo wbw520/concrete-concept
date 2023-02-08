@@ -8,14 +8,18 @@ import shutil
 from configs import parser
 from math import ceil
 import cv2
+from utils.tools import apply_colormap_on_image
+from utils.make_json import make_json_file
 
 
 def patch_calculation(tile_rows, tile_cols, image_source, image_size, model):
     full_probs_pred = torch.from_numpy(np.zeros((args.num_classes, image_size[0], image_size[1]))).to(args.device)
     count_predictions_pred = torch.from_numpy(np.zeros((args.num_classes, image_size[0], image_size[1]))).to(args.device)
 
-    full_probs_cpt = np.zeros((num_cpt, image_size[0], image_size[1]))
-    count_predictions_cpt = np.zeros((num_cpt, image_size[0], image_size[1]))
+    full_probs_cpt = np.zeros((args.num_cpt, image_size[0], image_size[1]))
+    count_predictions_cpt = np.zeros((args.num_cpt, image_size[0], image_size[1]))
+    cpt_record = [[] for i in range(args.num_cpt)]
+    score_record = [[] for i in range(args.num_cpt)]
 
     for row in range(tile_rows):
         print(str(row) + "/" + str(tile_rows))
@@ -40,20 +44,35 @@ def patch_calculation(tile_rows, tile_cols, image_source, image_size, model):
 
             with torch.set_grad_enabled(False):
                 cpt, pred, att, update, normed = model(transform(cropped_source).unsqueeze(0).to(args.device), None, None, check=None)
+                pp = torch.argmax(pred, dim=-1)[0]
                 pred = pred[0].unsqueeze(-1).unsqueeze(-1).expand(-1, patch_size, patch_size)
                 count_predictions_pred[:, y1:y2, x1:x2] += 1
                 full_probs_pred[:, y1:y2, x1:x2] += pred
+                w = model.state_dict()["cls.weight"][pp]
+                w_numpy = np.around(torch.tanh(w).cpu().detach().numpy(), 4)
+                ccc = np.around(cpt.cpu().detach().numpy(), 4)
+                cpt = ccc / 2 + 0.5
+                score = (ccc / 2 + 0.5) * w_numpy
 
                 for id in range(args.num_cpt):
                     slot_image = cv2.resize(normed[id], (224, 224))
                     count_predictions_cpt[id, y1:y2, x1:x2] += 1
                     full_probs_cpt[id, y1:y2, x1:x2] += slot_image
+                    cpt_record[id].append(cpt[0][id])
+                    score_record[id].append(score[0][id])
+
+    final_cpt = []
+    final_score = []
+
+    for ii in range(args.num_cpt):
+        final_cpt.append((np.mean(cpt_record[ii]) + np.median(cpt_record[ii])) / 2)
+        final_score.append((np.mean(score_record[ii]) + np.median(score_record[ii])) / 2)
 
     full_probs_pred /= count_predictions_pred
     _, preds = torch.max(full_probs_pred, 0)
 
     full_probs_cpt /= count_predictions_cpt
-    return preds, full_probs_cpt
+    return preds, full_probs_cpt, final_cpt, final_score
 
 
 def id2trainId(color, label):
@@ -83,33 +102,38 @@ def main():
     model.load_state_dict(checkpoint, strict=True)
     model.eval()
 
-    img_dir = "/home/s-tsuruta/PycharmProjects/concrete/data/concrete_data/2-t-7/row_img.png"
-    image_source = np.array(Image.open(img_dir).convert('RGB'))
-    # height_orl, width_orl, c = image_source.shape
-    # image_source = cv2.resize(image_source, (int(width_orl / resize_ratio), int(height_orl / resize_ratio)), interpolation=cv2.INTER_LINEAR)
+    img_dir = args.inference
+    image_source_ = Image.open(img_dir).convert('RGB')
+    image_source = np.array(image_source_)
+    image_source_.save(args.inference_result_dir + '/origin.png')
     height, width, c = image_source.shape
     tile_rows = ceil((height - patch_size) / stride) + 1
     tile_cols = ceil((width - patch_size) / stride) + 1
     print("tile_rows:", tile_rows)
     print("tile_cols:", tile_cols)
-    preds, full_cpt = patch_calculation(tile_rows, tile_cols, image_source, [height, width], model)
+    preds, full_cpt, final_cpt, final_score = patch_calculation(tile_rows, tile_cols, image_source, [height, width], model)
 
-    for i in range(num_cpt):
+    for i in range(args.num_cpt):
         save_cpt = full_cpt[i]
-        cv2.imwrite(f'inference/{i}_slot.png', save_cpt)
+        cv2.imwrite(args.inference_result_dir + f'/0_slot_{i}.png', save_cpt)
 
     mask = Image.fromarray(preds.cpu().detach().numpy(), mode='L')
-    mask.save(f'inference/prediction.png')
+    mask.save(args.inference_result_dir + f'/prediction.png')
+    make_json_file(args, final_cpt, final_score)
+
+    for id in range(args.num_cpt):
+        slot_image = np.array(Image.open(args.inference_result_dir + f'/0_slot_{id}.png'), dtype=np.uint8)
+        heatmap_only, heatmap_on_image = apply_colormap_on_image(image_source_, slot_image, 'jet')
+        heatmap_on_image.save(args.inference_result_dir + f'/0_slot_mask_{id}.png')
 
 
 if __name__ == '__main__':
-    shutil.rmtree('inference/', ignore_errors=True)
-    os.makedirs('inference/', exist_ok=True)
     args = parser.parse_args()
+    shutil.rmtree(args.inference_result_dir, ignore_errors=True)
+    os.makedirs(args.inference_result_dir, exist_ok=True)
     args.pre_train = False
     save_folder = "concrete_cropped_center/"
     patch_size = 224
     stride = 50
-    num_cpt = args.num_cpt
     transform = get_val_transformations()
     main()

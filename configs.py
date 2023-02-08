@@ -35,4 +35,6 @@ parser.add_argument('--index', default=0, type=int)
 parser.add_argument('--use_weight', default=False, help='whether use fc weight for the generation of attention mask')
 parser.add_argument('--top_samples', default=50, type=int, help='top n activated samples')
 parser.add_argument('--fre', default=1, type=int, help='frequent of show results during training')
+parser.add_argument('--inference_result_dir', default='./upload')
+parser.add_argument('--inference', type=str, default="/home/s-tsuruta/PycharmProjects/concrete/data/concrete_data/2-t-7/row_img.png", help='root of the image for demo')
 
