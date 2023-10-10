@@ -30,7 +30,6 @@ def main():
         if len(labelled_objects) == 0:
             continue
         name = item["External ID"][:-4]
-        print(name)
         os.makedirs('concrete_data/' + name, exist_ok=True)
         image_row = get_image(image_url)
         image_row.save("concrete_data/" + name + "/row_img.png")
@@ -45,5 +44,5 @@ def main():
 
 
 if __name__ == '__main__':
-    file_name = "export-2022-12-06T05_41_37.401Z.json"
+    file_name = "export-2023-09-20T04_11_28.821Z.json"
     main()

@@ -94,7 +94,7 @@ def main():
 
 if __name__ == '__main__':
     save_folder = "concrete_cropped_center/"
-    patch_size = 224
+    patch_size = 256
     center_size = 10
     stride = 50
     color = [255, 255, 255]

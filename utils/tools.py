@@ -61,7 +61,7 @@ def mean_average_precision(args, database_hash, test_hash, database_labels, test
 
         all_relevant = np.sum(database_labels == label, axis=1) > 0
         all_num = np.sum(all_relevant)
-        r = relevant_num / np.float(all_num)
+        r = relevant_num / np.float64(all_num)
         Recall.append(r)
 
     return np.mean(np.array(APx)), np.mean(np.array(Recall)), APx

@@ -48,7 +48,7 @@ def patch_calculation(tile_rows, tile_cols, image_source, image_size, model):
                 pred = pred[0].unsqueeze(-1).unsqueeze(-1).expand(-1, patch_size, patch_size)
                 count_predictions_pred[:, y1:y2, x1:x2] += 1
                 full_probs_pred[:, y1:y2, x1:x2] += pred
-                w = model.state_dict()["cls.weight"][pp]
+                w = model.state_dict()["cls.weight"][3]
                 w_numpy = np.around(torch.tanh(w).cpu().detach().numpy(), 4)
                 ccc = np.around(cpt.cpu().detach().numpy(), 4)
                 cpt = ccc / 2 + 0.5

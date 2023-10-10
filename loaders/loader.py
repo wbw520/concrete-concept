@@ -17,7 +17,7 @@ def get_train_transformations():
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
                 # transforms.RandomApply([transforms.RandomRotation([-90, 90])], p=0.8),
-                # transforms.RandomApply([transforms.RandomAffine(degrees=0, translate=(0.15, 0.15), fillcolor=(0, 0, 0))],
+                # transforms.RandomApply([transforms.RandomAffine(degrees=0, translate=(0.15, 0.15))],
                 #                        p=0.8),
                 transforms.ToTensor(),
                 ]
@@ -40,14 +40,15 @@ class MakeListImage():
         self.types = types
         self.image_root = "data/concrete_cropped_center/raw"
         self.cat = [['bg'],
-                    ['損傷等級c剥離・鉄筋露出', '範囲外', "don't use"],
-                    ['損傷等級cひびわれ', '損傷等級bひびわれ'],
-                    ['損傷等級e剥離・鉄筋露出', '損傷等級c遊離石灰', '損傷等級e遊離石灰', '損傷等級e 漏水・滞水・土砂詰', '損傷等級dひびわれ', '損傷等級c変形・欠損', '損傷等級d剥離・鉄筋露出']]
-        self.ratio = {0: 0.2, 1: 0.5}
+                    ['ひびわれ'],
+                    ['剥離・鉄筋露出', '剥離・鉄筋露出(剥離のみ)'],
+                    ['遊離石灰(つらら状)', '遊離石灰']]
+        self.ratio = {0: 0.03, 2: 0.3}
         self.cats = {}
 
         for i in range(len(self.cat)):
             self.cats.update({i: []})
+
         all_folders = get_name(os.path.join(self.image_root))
         train, val = train_test_split(all_folders, train_size=0.80, random_state=15)
         print("class number: ", len(self.cat))
