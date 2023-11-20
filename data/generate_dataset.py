@@ -56,12 +56,12 @@ def extract_crop(folders):
         print(item)
         os.makedirs(save_folder + "mask/" + item, exist_ok=True)
         os.makedirs(save_folder + "raw/" + item, exist_ok=True)
-        image_source = np.array(Image.open("concrete_data/" + item + "/row_img.png").convert('RGB'))
+        image_source = np.array(Image.open(root + item + "/row_img.png").convert('RGB'))
         h, w, c = image_source.shape
         tile_rows = ceil((h - patch_size) / stride)
         tile_cols = ceil((w - patch_size) / stride)
         mask_list = []
-        mask_img_name = get_name("concrete_data/" + item + "/labels", mode_folder=False)
+        mask_img_name = get_name(root + item + "/labels", mode_folder=False)
 
         for mask in mask_img_name:
             names = mask.split("_")
@@ -74,7 +74,7 @@ def extract_crop(folders):
                 cat_list.append(cat_name)
                 color_list.append(color_name)
 
-            image_label = np.array(Image.open("concrete_data/" + item + "/labels/" + mask).convert('RGB'))
+            image_label = np.array(Image.open(root + item + "/labels/" + mask).convert('RGB'))
             label_copy = np.zeros((h, w, 3), dtype=np.uint8)
             label_copy[np.logical_and(*list([image_label[:, :, i] == color[i] for i in range(3)]))] = color_name
             mask_list.append([image_label, label_copy, cat_name])
@@ -86,14 +86,15 @@ def extract_crop(folders):
 
 
 def main():
-    folders = get_name("concrete_data")
+    folders = get_name(root[:-1])
     shutil.rmtree(save_folder, ignore_errors=True)
     os.makedirs(save_folder, exist_ok=True)
     extract_crop(folders)
 
 
 if __name__ == '__main__':
-    save_folder = "concrete_cropped_center/"
+    root = "concrete_data2/"
+    save_folder = "concrete_cropped_center2/"
     patch_size = 256
     center_size = 10
     stride = 50

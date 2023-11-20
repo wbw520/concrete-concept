@@ -3,6 +3,8 @@
 import argparse
 parser = argparse.ArgumentParser(description="PyTorch implementation of cpt")
 parser.add_argument('--output_dir', type=str, default="saved_model")
+parser.add_argument('--fusion', default=False)
+parser.add_argument('--fusion_loader', default=True)
 # ========================= Model Configs ==========================
 parser.add_argument('--num_classes', default=4, type=int, help='category for classification')
 parser.add_argument('--num_cpt', default=5, type=int, help='number of the concept')

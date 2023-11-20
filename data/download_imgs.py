@@ -20,8 +20,8 @@ def get_image(url):
 
 
 def main():
-    shutil.rmtree('concrete_data/', ignore_errors=True)
-    os.makedirs('concrete_data/', exist_ok=True)
+    shutil.rmtree(root, ignore_errors=True)
+    os.makedirs(root, exist_ok=True)
     data = load_json(file_name)
     for item in data:
         ID = item["ID"]
@@ -30,19 +30,20 @@ def main():
         if len(labelled_objects) == 0:
             continue
         name = item["External ID"][:-4]
-        os.makedirs('concrete_data/' + name, exist_ok=True)
+        os.makedirs(root + name, exist_ok=True)
         image_row = get_image(image_url)
-        image_row.save("concrete_data/" + name + "/row_img.png")
+        image_row.save(root + name + "/row_img.png")
         for label in labelled_objects:
-            os.makedirs('concrete_data/' + name + "/labels", exist_ok=True)
+            os.makedirs(root + name + "/labels", exist_ok=True)
             feature_id = label["featureId"]
             color = label["color"]
             title = label["title"]
             instance_url = label["instanceURI"]
             image_label = get_image(instance_url)
-            image_label.save('concrete_data/' + name + "/labels/" + feature_id + "_" + color + "_" + title + ".png")
+            image_label.save(root + name + "/labels/" + feature_id + "_" + color + "_" + title + ".png")
 
 
 if __name__ == '__main__':
-    file_name = "export-2023-09-20T04_11_28.821Z.json"
+    root = 'concrete_data2/'
+    file_name = "export-2023-11-07T04_12_56.214Z.json"
     main()

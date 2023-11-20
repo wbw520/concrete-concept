@@ -90,3 +90,46 @@ def test(args, model, test_loader, device):
     ACC = record/len(test_loader)
     print("ACC:", ACC)
     return ACC
+
+
+def train2(args, model, device, loader, optimizer, epoch):
+    pred_acces = AverageMeter('Acc', ':.4')
+    losses = AverageMeter('Loss', ':.4')
+    show_items = [losses, pred_acces]
+    progress = ProgressMeter(len(loader),
+                             show_items,
+                             prefix="Epoch: [{}]".format(epoch))
+
+    model.train()
+    for batch_idx, (data, label, csv_) in enumerate(loader):
+        data, label, csv_ = data.to(device, dtype=torch.float32), label.to(device, dtype=torch.int64), csv_.to(device, dtype=torch.float32)
+        pred = model(data, csv_)
+        pred = F.log_softmax(pred, dim=-1)
+        loss_pred = F.nll_loss(pred, label)
+        acc = cal_acc(pred, label, False)
+
+        pred_acces.update(acc)
+        losses.update(loss_pred.item())
+
+        loss_total = loss_pred
+
+        optimizer.zero_grad()
+        loss_total.backward()
+        optimizer.step()
+
+        if batch_idx % 5 == 0:
+            progress.display(batch_idx)
+
+
+@torch.no_grad()
+def test2(args, model, test_loader, device):
+    model.eval()
+    record = 0.0
+    for batch_idx, (data, label, csv_) in enumerate(test_loader):
+        data, label, csv_ = data.to(device, dtype=torch.float32), label.to(device, dtype=torch.int64), csv_.to(device, dtype=torch.float32)
+        cpt = model(data, csv_)
+        acc = cal_acc(cpt, label, False)
+        record += acc
+    ACC = record/len(test_loader)
+    print("ACC:", ACC)
+    return ACC

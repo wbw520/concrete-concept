@@ -2,6 +2,8 @@ from timm.models import create_model
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
+import os
+from utils.tools import fix_parameter, print_param
 from model.retrieval.slots import ScouterAttention
 from model.retrieval.position_encode import build_position_encoding
 
@@ -76,18 +78,63 @@ class MainModel(nn.Module):
                 cpt_activation = updates
             attn_cls = self.scale * torch.sum(cpt_activation, dim=-1)
             cpt = self.activation(attn_cls)
-            cls = self.cls(cpt)
+            if not self.args.fusion_loader:
+                cls = self.cls(cpt)
 
             if self.vis:
                 return (cpt - 0.5) * 2, cls, attn, updates, normed
             else:
-                return (cpt - 0.5) * 2, cls, attn, updates
+                if self.args.fusion_loader:
+                    return cpt
+                else:
+                    return (cpt - 0.5) * 2, cls, attn, updates
         else:
             x = F.adaptive_max_pool2d(x, 1).squeeze(-1).squeeze(-1)
             if self.drop_rate > 0:
                 x = F.dropout(x, p=self.drop_rate, training=self.training)
             x = self.fc(x)
             return x
+
+
+class ModelFusion(nn.Module):
+    def __init__(self, args):
+        super(ModelFusion, self).__init__()
+        num_concepts = args.num_cpt
+        num_classes = args.num_classes
+        self.args = args
+        args.pre_train = False
+        model_base = MainModel(args)
+        checkpoint = torch.load(os.path.join(args.output_dir,
+                                             f"{args.base_model}_cls{args.num_classes}_cpt{args.num_cpt}_" +
+                                             f"{'use_slot_' + args.cpt_activation if not args.pre_train else 'no_slot'}.pt"),
+                                map_location="cpu")
+        model_base.load_state_dict(checkpoint, strict=True)
+        # fix_parameter(model_base, ["PPPP"], mode="open")
+        print("load pre-trained model finished, start training")
+        model_base.cls = Identical()
+        self.cpt_g = model_base
+
+        if self.args.fusion:
+            self.fc1 = nn.Sequential(
+                torch.nn.Linear(2, 2, bias=True),
+                torch.nn.ReLU(),
+                torch.nn.Tanh()
+            )
+
+            self.cls = torch.nn.Linear(num_concepts + 2, 2, bias=False)
+        else:
+            self.cls = torch.nn.Linear(num_concepts, 2, bias=False)
+
+    def forward(self, x, csv_):
+        cpt = self.cpt_g(x)
+        if self.args.fusion:
+            csv_0 = self.fc1(csv_)
+            cat = torch.cat([cpt, csv_0], dim=-1)
+            cls = self.cls(cat)
+        else:
+            cls = self.cls(cpt)
+
+        return cls
 
 
 # if __name__ == '__main__':

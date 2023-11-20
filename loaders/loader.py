@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 import numpy as np
 from PIL import Image
 import torch
-import shutil
+import pandas as pd
 import os
 from utils.tools import get_name
 
@@ -32,18 +32,35 @@ def get_val_transformations():
     return transforms.Compose(aug_list)
 
 
+def get_csv():
+    df = pd.read_csv('extrac_index.csv', encoding="cp932")
+    wbw = df[["1", "2", "3"]]
+    wbw = wbw.values
+
+    dict_record = {}
+    for i in range(len(wbw)):
+        if wbw[i][1] == '不明':
+            wbw[i][1] = 0
+        dict_record.update({wbw[i][0]: [float(wbw[i][1]), float(wbw[i][2])]})
+
+    return dict_record
+
+
 class MakeListImage():
     """
     this class used to make list of data for dataset
     """
     def __init__(self, types):
         self.types = types
-        self.image_root = "data/concrete_cropped_center/raw"
+        self.image_root = "data/concrete_cropped_center2/raw"
         self.cat = [['bg'],
-                    ['ひびわれ'],
-                    ['剥離・鉄筋露出', '剥離・鉄筋露出(剥離のみ)'],
-                    ['遊離石灰(つらら状)', '遊離石灰']]
-        self.ratio = {0: 0.03, 2: 0.3}
+                    ['ひびわれ']]
+        # self.cat = [['bg'],
+        #             ['ひびわれ'],
+        #             ['剥離・鉄筋露出', '剥離・鉄筋露出(剥離のみ)'],
+        #             ['遊離石灰(つらら状)', '遊離石灰']]
+        self.ratio = {0: 0.2, 1: 0.99}
+        # self.ratio = {0: 0.03, 2: 0.3}
         self.cats = {}
 
         for i in range(len(self.cat)):
@@ -94,9 +111,11 @@ class MakeListImage():
 
 
 class GenerateImages(torch.utils.data.Dataset):
-    def __init__(self, types, transform=None):
+    def __init__(self, args, types, transform=None):
+        self.args = args
         self.all_data = MakeListImage(types).get_data()
         self.transform = transform
+        self.csv = get_csv()
 
     def __len__(self):
         return len(self.all_data)
@@ -110,6 +129,14 @@ class GenerateImages(torch.utils.data.Dataset):
             image = self.transform(image)
         label = self.all_data[item_id][1]
         label = torch.from_numpy(np.array(label))
+
+        if self.args.fusion_loader:
+            index_ = image_root.split("/")[3]
+            index_1 = index_.split("_")[0]
+            data_ = torch.from_numpy(np.array(self.csv[index_1]))
+
+            return image, label, data_
+
         return image, label
 
 
@@ -117,8 +144,8 @@ def loader_generation(args):
     transform_train = get_train_transformations()
     transform_val = get_val_transformations()
 
-    train_set = GenerateImages("train", transform_train)
-    val_set = GenerateImages("val", transform_val)
+    train_set = GenerateImages(args,"train", transform_train)
+    val_set = GenerateImages(args,"val", transform_val)
     print('Train samples %d - Val samples %d' % (len(train_set), len(val_set)))
 
     train_loader1 = DataLoader(train_set, batch_size=args.batch_size,

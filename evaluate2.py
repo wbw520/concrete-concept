@@ -2,8 +2,8 @@ import os
 import torch
 from configs import parser
 import torch.nn.functional as F
-from model.retrieval.model_main import MainModel
-from loaders.loader import loader_generation, MakeListImage
+from model.retrieval.model_main import ModelFusion
+from loaders.loader import loader_generation
 from utils.cal_tools import matrixs
 
 
@@ -13,12 +13,9 @@ def evaluation(args, model, loader, device):
     preds_record = []
     labels_record = []
 
-    for batch_idx, (data, label) in enumerate(loader):
-        data, label = data.to(device, dtype=torch.float32), label.to(device, dtype=torch.int64)
-        if not args.pre_train:
-            cpt, pred, att, update = model(data)
-        else:
-            pred = F.log_softmax(model(data), dim=-1)
+    for batch_idx, (data, label, csv_) in enumerate(loader):
+        data, label, csv_ = data.to(device, dtype=torch.float32), label.to(device, dtype=torch.int64), csv_.to(device, dtype=torch.float32)
+        pred = F.log_softmax(model(data, csv_), dim=-1)
 
         preds_record.append(pred)
         labels_record.append(label)
@@ -34,20 +31,19 @@ def main():
     train_loader1, train_loader2, val_loader = loader_generation(args)
 
     # load model and weights
-    model = MainModel(args, vis=False)
+    model = ModelFusion(args)
     device = torch.device("cuda:0")
     model.to(device)
-    checkpoint = torch.load(os.path.join(args.output_dir, f"{args.base_model}_cls{args.num_classes}_" + f"cpt{args.num_cpt if not args.pre_train else ''}_" +
+    checkpoint = torch.load(os.path.join(args.output_dir, f"{'Fusion' if not args.fusion else 'No_fusion'}_{args.base_model}_cls{args.num_classes}_" + f"cpt{args.num_cpt if not args.pre_train else ''}_" +
                 f"{'use_slot_' + args.cpt_activation if not args.pre_train else 'no_slot'}.pt"),
                             map_location="cuda:0")
     model.load_state_dict(checkpoint, strict=True)
 
     preds, labels = evaluation(args, model, val_loader, device)
-    matrixs(preds, labels, args.base_model + " Per-class Normalized", ["0", "1", "2", "3"])
+    matrixs(preds, labels, args.base_model + " Per-class Normalized", ["0", "1"])
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
     args.pre_train = False
-    args.fusion_loader = False
     main()
