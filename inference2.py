@@ -34,7 +34,8 @@ def main():
     img = Image.open(img_dir).convert('RGB')
     img = trans(img).unsqueeze(0)
 
-    fusion_data = torch.from_numpy(np.array([2017, 58])).unsqueeze(0)
+    csv_data = [2017, 58]
+    fusion_data = torch.from_numpy(np.array(csv_data)).unsqueeze(0)
     evaluation(model, img, fusion_data, device)
 
 

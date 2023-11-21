@@ -36,3 +36,17 @@
 3. change --base_model for different backbone
 4. change --num_classes according to classification needs
 5. change --num_cpt for different concept number
+
+
+#### Training with extra csv
+1. Prepare the json file through Labeling box and set it under data/ direction.
+2. run data/download_imgs.py (download images and corresponding masks, change root to "concrete_data2/").
+3. run data/generate_dataset.py (crop and generate patches for training and evaluation, change root to "concrete_data2/", save_folder to "concrete_cropped_center2/").
+4. Train fusion model
+```
+1. change --fusion and --fusion_loader as True in file configs.py
+2. run main2.py
+3. run inference2.py for run one image.
+img_dir = "" (for your image root) 
+set csv data in "csv_data = [2017, 58]", current two values are avaliable.
+```
