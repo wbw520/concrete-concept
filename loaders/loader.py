@@ -32,6 +32,14 @@ def get_val_transformations():
     return transforms.Compose(aug_list)
 
 
+def inference_transformation():
+    aug_list = [
+        transforms.CenterCrop((224, 224)),
+        transforms.ToTensor(),
+    ]
+    return transforms.Compose(aug_list)
+
+
 def get_csv():
     df = pd.read_csv('extrac_index.csv', encoding="cp932")
     wbw = df[["1", "2", "3"]]
