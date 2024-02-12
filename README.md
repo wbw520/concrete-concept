@@ -45,6 +45,7 @@
 4. Train fusion model
 ```
 1. change --fusion and --fusion_loader as True in file configs.py
+2. change --item_number to set number of item used in csv file (Using the same structure with first row of item name as 1, 2, 3, ...).
 2. run main2.py
 3. run inference2.py for run one image.
 img_dir = "" (for your image root) 
