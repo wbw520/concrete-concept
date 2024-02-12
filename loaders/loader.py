@@ -34,22 +34,29 @@ def get_val_transformations():
 
 def inference_transformation():
     aug_list = [
-        transforms.CenterCrop((224, 224)),
+        # transforms.CenterCrop((224, 224)),
         transforms.ToTensor(),
     ]
     return transforms.Compose(aug_list)
 
 
-def get_csv():
+def get_csv(args):
     df = pd.read_csv('extrac_index.csv', encoding="cp932")
-    wbw = df[["1", "2", "3"]]
+    item_number = args.item_number
+    number_list = []
+    for s in range(item_number+1):
+        number_list.append(str(s+1))
+    wbw = df[number_list]
     wbw = wbw.values
 
     dict_record = {}
     for i in range(len(wbw)):
         if wbw[i][1] == '不明':
             wbw[i][1] = 0
-        dict_record.update({wbw[i][0]: [float(wbw[i][1]), float(wbw[i][2])]})
+        current_list = []
+        for ss in range(item_number):
+            current_list.append(float(wbw[i][ss+1]))
+        dict_record.update({wbw[i][0]: current_list})
 
     return dict_record
 
@@ -123,7 +130,7 @@ class GenerateImages(torch.utils.data.Dataset):
         self.args = args
         self.all_data = MakeListImage(types).get_data()
         self.transform = transform
-        self.csv = get_csv()
+        self.csv = get_csv(args)
 
     def __len__(self):
         return len(self.all_data)

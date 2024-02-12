@@ -81,7 +81,7 @@ class MainModel(nn.Module):
             if not self.args.fusion_loader:
                 cls = self.cls(cpt)
 
-            if self.vis:
+            if self.vis and not self.args.fusion_loader:
                 return (cpt - 0.5) * 2, cls, attn, updates, normed
             else:
                 if self.args.fusion_loader:
@@ -97,19 +97,18 @@ class MainModel(nn.Module):
 
 
 class ModelFusion(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args, vis):
         super(ModelFusion, self).__init__()
         num_concepts = args.num_cpt
-        num_classes = args.num_classes
         self.args = args
         args.pre_train = False
-        model_base = MainModel(args)
+        model_base = MainModel(args, vis=vis)
         checkpoint = torch.load(os.path.join(args.output_dir,
                                              f"{args.base_model}_cls{args.num_classes}_cpt{args.num_cpt}_" +
                                              f"{'use_slot_' + args.cpt_activation if not args.pre_train else 'no_slot'}.pt"),
                                 map_location="cpu")
         model_base.load_state_dict(checkpoint, strict=True)
-        # fix_parameter(model_base, ["PPPP"], mode="open")
+        fix_parameter(model_base, ["layer3", "layer4"], mode="open")
         print("load pre-trained model finished, start training")
         model_base.cls = Identical()
         self.cpt_g = model_base
@@ -131,10 +130,10 @@ class ModelFusion(nn.Module):
             csv_0 = self.fc1(csv_)
             cat = torch.cat([cpt, csv_0], dim=-1)
             cls = self.cls(cat)
+            return cls, cat
         else:
             cls = self.cls(cpt)
-
-        return cls
+            return cls
 
 
 # if __name__ == '__main__':

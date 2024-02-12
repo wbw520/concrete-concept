@@ -12,7 +12,7 @@ os.makedirs('saved_model/', exist_ok=True)
 
 
 def main():
-    model = ModelFusion(args)
+    model = ModelFusion(args, vis=False)
     device = torch.device(args.device)
 
     # CUDNN
@@ -51,4 +51,6 @@ def main():
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    args.pre_train = False
+    args.fusion = True
     main()

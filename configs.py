@@ -16,6 +16,7 @@ parser.add_argument('--cpt_activation', default="att", help='the type to form cp
 parser.add_argument('--feature_size', default=7, help='size of the feature from backbone')
 parser.add_argument('--process', default=False, help='whether process for h5py file')
 parser.add_argument('--layer', default=1, help='layers for fc, default as one')
+parser.add_argument('--item_number', default=2, type=int)
 # ========================= Training Configs ==========================
 parser.add_argument('--weak_supervision_bias', type=float, default=0.1, help='weight fot the weak supervision branch')
 parser.add_argument('--att_bias', type=float, default=0.1, help='used to prevent overflow, default as 0.1')
@@ -24,7 +25,7 @@ parser.add_argument('--distinctiveness_bias', type=float, default=1, help='refer
 parser.add_argument('--consistence_bias', type=float, default=1, help='refer to paper')
 # ========================= Learning Configs ==========================
 parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='start epoch')
-parser.add_argument('--lr', default=0.0005, type=float)
+parser.add_argument('--lr', default=0.0001, type=float)
 parser.add_argument('--batch_size', default=32, type=int)
 parser.add_argument('--epoch', default=40, type=int)
 parser.add_argument('--lr_drop', default=30, type=float, nargs="+",
